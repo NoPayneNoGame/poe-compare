@@ -2,6 +2,7 @@
 
 import { app, BrowserWindow, globalShortcut, clipboard } from 'electron'
 import robot from 'robotjs'
+import axios from 'axios'
 
 /**
  * Set `__static` path to static files in production
@@ -48,6 +49,17 @@ function createWindow () {
 
     // Send the clipboard contents to the Renderer
     mainWindow.webContents.send('item', copyText)
+
+    // Get users items
+    var characterName = 'SlowRoastedNutBar'
+    var accountName = 'AReallyCoolWig'
+    axios.get(`http://www.pathofexile.com/character-window/get-items?character=${characterName}&accountName=${accountName}`)
+      .then(function (response) {
+        // handle success
+        for (var i = 0; i < response.data.items.length; i++) {
+          mainWindow.webContents.send('item', response.data.items[i])
+        }
+      })
   })
 
   if (!hotkeyReg) {
