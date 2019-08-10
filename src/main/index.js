@@ -1,8 +1,9 @@
 'use strict'
 
-import { app, BrowserWindow, globalShortcut, clipboard } from 'electron'
 import robot from 'robotjs'
-import axios from 'axios'
+import { app, BrowserWindow, globalShortcut, clipboard } from 'electron'
+
+import enableIpcApi from './api'
 
 /**
  * Set `__static` path to static files in production
@@ -27,7 +28,10 @@ function createWindow () {
   mainWindow = new BrowserWindow({
     height: 563,
     useContentSize: true,
-    width: 1000
+    width: 1000,
+    webPreferences: {
+      nodeIntegration: true
+    }
   })
 
   mainWindow.loadURL(winURL)
@@ -35,6 +39,8 @@ function createWindow () {
   mainWindow.on('closed', () => {
     mainWindow = null
   })
+
+  enableIpcApi()
 
   // Register a global hotkey
   const hotkey = 'F7'
@@ -49,17 +55,6 @@ function createWindow () {
 
     // Send the clipboard contents to the Renderer
     mainWindow.webContents.send('item', copyText)
-
-    // Get users items
-    var characterName = 'SlowRoastedNutBar'
-    var accountName = 'AReallyCoolWig'
-    axios.get(`http://www.pathofexile.com/character-window/get-items?character=${characterName}&accountName=${accountName}`)
-      .then(function (response) {
-        // handle success
-        for (var i = 0; i < response.data.items.length; i++) {
-          mainWindow.webContents.send('item', response.data.items[i])
-        }
-      })
   })
 
   if (!hotkeyReg) {

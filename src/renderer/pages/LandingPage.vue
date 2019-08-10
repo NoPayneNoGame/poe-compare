@@ -1,16 +1,39 @@
 <template>
   <div class="landing-page">
-    <main>
-      <div class="columns">
-        <div class="col">
-          Test
-        </div>
-        <div class="col">
-          {{ copiedMessage }}
-        </div>
-        <div class="col">
-          123
-        </div>
+    <main class="page-content">
+      <div class="error-message">
+        {{ errorMessage }}
+      </div>
+
+      <form
+        class="inputs"
+        @submit.prevent="getCharacter"
+      >
+        <label>
+          Account Name:
+          <input
+            v-model="accountName"
+            type="text"
+          >
+        </label>
+        <label>
+          Character Name:
+          <input
+            v-model="characterName"
+            type="text"
+          >
+        </label>
+        <input
+          type="submit"
+          value="Find"
+        >
+      </form>
+
+      <div class="character-wrapper">
+        {{ accountName }} {{ characterName }}
+      </div>
+      <div class="items">
+        {{ items }}
       </div>
     </main>
   </div>
@@ -18,11 +41,16 @@
 
 <script>
 import { ipcRenderer } from 'electron'
+
 export default {
   name: 'LandingPage',
   data () {
     return {
-      copiedMessage: ''
+      copiedMessage: '',
+      accountName: 'AReallyCoolWig',
+      characterName: 'SlowRoastedNutBar',
+      errorMessage: '',
+      items: []
     }
   },
   beforeMount () {
@@ -31,25 +59,43 @@ export default {
       console.log('item', message)
       this.copiedMessage = message
     })
+  },
+  methods: {
+    async getCharacter () {
+      ipcRenderer.on('poe-getCharacter', (event, items) => {
+        console.log('Recieved getCharacter')
+        if (items.error) {
+          this.items = []
+          this.errorMessage = items.error.data
+        } else {
+          this.items = items
+          this.errorMessage = ''
+        }
+      })
+
+      console.log('Sending getCharacter')
+      ipcRenderer.send('poe-getCharacter', this.accountName, this.characterName)
+    }
   }
 }
 </script>
 
-<style>
-  @import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro');
-
-  * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-  }
-
-  body { font-family: 'Source Sans Pro', sans-serif; }
-
-  .columns {
+<style lang="scss">
+  .landing-page .page-content {
     display: flex;
-    flex-direction: row;
-    justify-content: space-around;
+    flex-direction: column;
+    justify-content: flex-start;
+
+    .inputs {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+
+    .error-message {
+      color: red;
+      font-weight: bold;
+    }
   }
 
 </style>
