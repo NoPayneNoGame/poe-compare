@@ -32,18 +32,18 @@
       <div class="character-wrapper">
         {{ accountName }} {{ characterName }}
       </div>
-      <div class="items">
-        {{ items }}
-      </div>
+      <character :items="items" />
     </main>
   </div>
 </template>
 
 <script>
 import { ipcRenderer } from 'electron'
+import Character from '../components/Character'
 
 export default {
   name: 'LandingPage',
+  components: { Character },
   data () {
     return {
       copiedMessage: '',
@@ -62,11 +62,11 @@ export default {
   },
   methods: {
     async getCharacter () {
-      ipcRenderer.on('poe-getCharacter', (event, items) => {
-        console.log('Recieved getCharacter')
-        if (items.error) {
+      ipcRenderer.on('poe-getCharacter', (event, { error, character, items }) => {
+        console.log('Recieved getCharacter', Object.keys(items[0]))
+        if (error) {
           this.items = []
-          this.errorMessage = items.error.data
+          this.errorMessage = error.data
         } else {
           this.items = items
           this.errorMessage = ''
